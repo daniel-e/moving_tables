@@ -2,9 +2,10 @@
 
 # XXX rotate tables
 # XXX check that radius is 100cm
+# XXX AI
 
 import sys, random
-from io import load_room, load_table
+from io import load_room, load_table, load_escape
 from helpers import put_table, put_tables, cp_room, get_target_pos, dist
 from helpers import find_valid_random_table_layout
 
@@ -17,34 +18,55 @@ room = []
 table = []
 table_start_offset = []   # start position of employee relative to left upper corner of table
 target_pos = []           # target position of each employee
+escape = []
+escape_center = []
 
 # -------------------------
 
 def allowed(r, x, y):
 	return (
 		x >= 0 and y >= 0 and x < len(r[0]) and y < len(r) and
-		(r[y][x] == 'X' or r[y][x] == 'o' or r[y][x] == '-' or r[y][x] == 'T')
+		# X = free in room
+		# o = person at table
+		# - = free place in room not allowed for table
+		# T = escape target
+		# c = center of person at table
+		(r[y][x] == 'X' or r[y][x] == 'o' or r[y][x] == '-' or r[y][x] == 'T' or r[y][x] == 'c')
 	)
 
-def do_compute_path(r, cx, cy, tx, ty, n, stack):
+def big_enough(r, x, y):
+	x -= escape_center[0]
+	y -= escape_center[1]
+	for (ypos, l) in enumerate(escape):
+		for (xpos, c) in enumerate(l):
+			if c != '-':
+				if not allowed(r, x + xpos, y + ypos):
+					return False
+	# XXX search error
+	return True
+
+def do_compute_path(r, cx, cy, tx, ty, n, stack, visited):
 	#if n > 200:
+	#	stack.append((tx, ty))
 	#	return
 	stack.append((cx, cy))
 	candidates = []
 	for y in [-1, 0, 1]:
 		for x in [-1, 0, 1]:
 			if x != 0 or y != 0:
-				if allowed(r, cx + x, cy + y):
+				if big_enough(r, cx + x, cy + y):
 					candidates.append((dist(cx + x, cy + y, tx, ty), cx + x, cy + y))
 
 	for d, x, y in sorted(candidates):
-		if r[y][x] == 'T':
-			stack.append((tx, ty))
-			return
-		r[y][x] = 'O'
-		do_compute_path(r, x, y, tx, ty, n + 1, stack)
-		if stack[-1] == (tx, ty):
-			return
+		if (x, y) not in visited:
+			if r[y][x] == 'T':
+				stack.append((tx, ty))
+				return
+			visited.add((x, y))
+			#r[y][x] = 'O'
+			do_compute_path(r, x, y, tx, ty, n + 1, stack, visited)
+			if stack[-1] == (tx, ty):
+				return
 	stack.pop()
 
 def compute_path(r, x, y):
@@ -56,7 +78,8 @@ def compute_path(r, x, y):
 	tx = target_pos[0]
 	ty = target_pos[1]
 	stck = []
-	do_compute_path(r, xpos, ypos, tx, ty, 0, stck)
+	visited = set([])
+	do_compute_path(r, xpos, ypos, tx, ty, 0, stck, visited)
 	return stck
 
 def compute_paths(room, table, table_pos):
@@ -81,6 +104,7 @@ def compute_paths(room, table, table_pos):
 
 # -------------------------
 
+escape, escape_center     = load_escape()
 room                      = load_room(open("raum.txt"))     # load room layout from file
 target_pos                = get_target_pos(room)
 table, table_start_offset = load_table()                    # load table layout from file

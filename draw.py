@@ -26,8 +26,11 @@ def expose(widget, event):
 				draw_rect(cr, xpos, ypos, 0.2, 0.6, 0.2)
 			elif x == 'o':
 				draw_rect(cr, xpos, ypos, 0.2, 0.2, 0.6)
+			elif x == 'c':
+				draw_rect(cr, xpos, ypos, 0.9, 0.9, 0.2)
+			# path
 			elif x == 'O':
-				draw_rect(cr, xpos, ypos, 0.9, 0.9, 0.9)
+				draw_rect(cr, xpos, ypos, 0.7, 0.7, 0.7)
 			# room
 			elif x == '-':
 				draw_rect(cr, xpos, ypos, 0.4, 0.4, 0.4)
@@ -38,7 +41,7 @@ def expose(widget, event):
 
 def destroy(w, data = None):
 	gtk.main_quit()
-	
+
 w = gtk.Window(gtk.WINDOW_TOPLEVEL)
 w.resize(len(room[0]) * 10, len(room) * 10)
 w.connect("destroy", destroy)
