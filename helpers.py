@@ -83,7 +83,7 @@ def put_table_in_room_with_collision(room, table, x, y, border = False):
 						room[ypos + y][xpos + x] = c
 	return collisions
 
-def find_random_table_layout(n_tables, room, table):
+def find_random_table_layout_with_collisions(n_tables, room, table):
 	while True:
 		pos = []
 		r = cp_room(room)
