@@ -18,9 +18,6 @@ from helpers import put_tables_with_collision
 from path import compute_paths
 import genetic
 
-n_tables = 0
-table_pos = [(10, 20), (30, 25)]
-
 n_tables = 8
 table_pos = []
 room = []
