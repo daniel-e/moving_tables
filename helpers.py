@@ -58,9 +58,7 @@ class table_settings:
 		self.rotation = rotation
 		self.mirror = mirror
 
-rotated_tables = None
-
-def rotate_table(table, n):
+def _rotate_table(table, n):
 	if n == 0:
 		return table
 	maxx = max(len(i) for i in table)
@@ -70,8 +68,18 @@ def rotate_table(table, n):
 		r.append([' ' for i in xrange(maxy)])
 	for (ypos, y) in enumerate(table):
 		for (xpos, v) in enumerate(y):
-			r[xpos][ypos] = v
-	return rotate_table(r, n - 1)
+			r[maxx - xpos - 1][ypos] = v
+	return _rotate_table(r, n - 1)
+
+def _mirror_table(table):
+	r = []
+	maxx = max(len(i) for i in table)
+	for l in table:
+		x = l[:]
+		while len(x) < maxx:
+			x.append(' ')
+		r.append(list(reversed(x)))
+	return r
 
 def put_tables_with_collision(room, table, ts):
 	r = cp_room(room)
@@ -79,17 +87,20 @@ def put_tables_with_collision(room, table, ts):
 	for t in ts:
 		x = t.pos[0]
 		y = t.pos[1]
-		rot = t.rotation
-		cnt += put_table_in_room_with_collision(r, table, x, y, rot, True)
+		cnt += _put_table_in_room_with_collision(r, table, x, y, t.rotation, t.mirror, True)
 	return r, cnt
 
-def put_table_in_room_with_collision(room, table, x, y, r, border = False):
+rotated_tables = None
+
+def _put_table_in_room_with_collision(room, table, x, y, r, mirror, border = False):
 	collisions = 0
 
 	global rotated_tables
 	if rotated_tables == None:
-		rotated_tables = [rotate_table(table, i) for i in xrange(4)]
-	t = rotated_tables[r]
+		rotated_tables = []
+		rotated_tables.append([_rotate_table(table, i) for i in xrange(4)])
+		rotated_tables.append([_rotate_table(_mirror_table(table), i) for i in xrange(4)])
+	t = rotated_tables[int(mirror)][r]
 
 	for (ypos, l) in enumerate(t):
 		for (xpos, c) in enumerate(l):
@@ -116,8 +127,9 @@ def find_random_table_layout_with_collisions(n_tables, room, table):
 			x = random.randint(0, len(room[0]) - 1)
 			y = random.randint(0, len(room) - 1)
 			rot = random.randint(0, 3)
-			if put_table_in_room_with_collision(r, table, x, y, rot) == -1:
+			mir = bool(random.randint(0, 1))
+			if _put_table_in_room_with_collision(r, table, x, y, rot, mir) == -1:
 				break
-			pos.append(table_settings((x, y), rot))
+			pos.append(table_settings((x, y), rot, mir))
 		if len(pos) == n_tables:
 			return pos

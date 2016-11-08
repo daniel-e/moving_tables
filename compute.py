@@ -4,7 +4,6 @@
 # genetic algorithms so that they do not overlap.
 # Fitness function is based only on overlapping.
 
-# XXX mirror tables
 # XXX fitness function: include escape paths
 # XXX fitness function: increase average distance of tables
 # XXX fitness function: direction to door / other collegues
@@ -66,11 +65,15 @@ def tobin(i):
 				b.append(1)
 			else:
 				b.append(0)
+		if t.mirror:
+			b.append(1)
+		else:
+			b.append(0)
 	return b
 
 def split_bin(b):
-	for i in xrange(0, len(b), 7 + 6 + 2):
-		yield b[i:i+15]
+	for i in xrange(0, len(b), 7 + 6 + 2 + 1):
+		yield b[i:i+16]
 
 def bin2dec(v):
 	r = 0
@@ -84,9 +87,10 @@ def frombin(b):
 	r = []
 	for i in split_bin(b):
 		x = bin2dec(i[:7])
-		y = bin2dec(i[7:7+6])
-		rot = bin2dec(i[7+6:])
-		r.append(table_settings((x, y), rot))
+		y = bin2dec(i[7:13])
+		rot = bin2dec(i[13:15])
+		mir = bool(bin2dec(i[15:16]))
+		r.append(table_settings((x, y), rot, mir))
 	return individuum(r)
 
 def mutation(i):
