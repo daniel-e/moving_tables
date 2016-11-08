@@ -52,6 +52,12 @@ def find_valid_random_table_layout(n_tables, room, table):
 
 # ------------------------------------
 
+class table_settings:
+	def __init__(self, pos, rotation, mirror = False):
+		self.pos = pos
+		self.rotation = rotation
+		self.mirror = mirror
+
 rotated_tables = None
 
 def rotate_table(table, n):
@@ -67,10 +73,13 @@ def rotate_table(table, n):
 			r[xpos][ypos] = v
 	return rotate_table(r, n - 1)
 
-def put_tables_with_collision(room, table, table_pos):
+def put_tables_with_collision(room, table, ts):
 	r = cp_room(room)
 	cnt = 0
-	for x, y, rot in table_pos:
+	for t in ts:
+		x = t.pos[0]
+		y = t.pos[1]
+		rot = t.rotation
 		cnt += put_table_in_room_with_collision(r, table, x, y, rot, True)
 	return r, cnt
 
@@ -109,6 +118,6 @@ def find_random_table_layout_with_collisions(n_tables, room, table):
 			rot = random.randint(0, 3)
 			if put_table_in_room_with_collision(r, table, x, y, rot) == -1:
 				break
-			pos.append((x, y, rot))
+			pos.append(table_settings((x, y), rot))
 		if len(pos) == n_tables:
 			return pos

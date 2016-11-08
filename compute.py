@@ -14,7 +14,7 @@ import sys, random
 from io import load_room, load_table, load_escape
 from helpers import put_table, put_tables, cp_room, get_target_pos, dist
 from helpers import find_valid_random_table_layout, find_random_table_layout_with_collisions
-from helpers import put_tables_with_collision
+from helpers import put_tables_with_collision, table_settings
 from path import compute_paths
 import genetic
 
@@ -37,16 +37,20 @@ table, table_start_offset = load_table()                    # load table layout 
 r = None
 
 class individuum:
-	def __init__(self, table_pos):
+	def __init__(self, ts):
 		self.fitness_value = 0.0
 		self.room_config = None
-		self.table_pos = table_pos
+		self.table_settings = ts
 
 def tobin(i):
 	b = []
 	# 7 bit for x
 	# 6 bit for y
-	for x, y, r in i.table_pos:
+	for t in i.table_settings:
+		x = t.pos[0]
+		y = t.pos[1]
+		r = t.rotation
+
 		for i in [64, 32, 16, 8, 4, 2, 1]:
 			if x & i:
 				b.append(1)
@@ -82,7 +86,7 @@ def frombin(b):
 		x = bin2dec(i[:7])
 		y = bin2dec(i[7:7+6])
 		rot = bin2dec(i[7+6:])
-		r.append((x, y, rot))
+		r.append(table_settings((x, y), rot))
 	return individuum(r)
 
 def mutation(i):
@@ -105,8 +109,8 @@ if True:
 	# create initial population
 	for i in xrange(n):
 		# can also return overlapping tables
-		table_pos = find_random_table_layout_with_collisions(n_tables, room, table)
-		population.append(individuum(table_pos))
+		table_set = find_random_table_layout_with_collisions(n_tables, room, table)
+		population.append(individuum(table_set))
 
 	while True:
 		assert(len(population) == n)
@@ -117,7 +121,7 @@ if True:
 		best = 0
 		for (idx, i) in enumerate(population):
 			# cnt = number of collisions
-			r, cnt = put_tables_with_collision(room, table, i.table_pos)
+			r, cnt = put_tables_with_collision(room, table, i.table_settings)
 
 			#for line in r:
 			#	print "".join(line)
@@ -132,7 +136,7 @@ if True:
 		print >> sys.stderr, "average fitness:", float(fsum) / n, "best:", population[best].fitness_value
 
 		if population[best].fitness_value == 0:
-			tp = population[best].table_pos
+			tp = population[best].table_settings
 			r, cnt = put_tables_with_collision(room, table, tp)
 			break
 
