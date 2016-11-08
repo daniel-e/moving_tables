@@ -1,4 +1,6 @@
 import sys
+from io import get_table_start_offset
+from helpers import rotate_mirror_table, cp_room, put_table, dist
 
 def allowed(r, x, y):
 	return (
@@ -11,7 +13,7 @@ def allowed(r, x, y):
 		(r[y][x] == 'X' or r[y][x] == 'o' or r[y][x] == '-' or r[y][x] == 'T' or r[y][x] == 'c')
 	)
 
-def big_enough(r, x, y):
+def big_enough(r, x, y, escape_center, escape):
 	x -= escape_center[0]
 	y -= escape_center[1]
 	for (ypos, l) in enumerate(escape):
@@ -21,33 +23,34 @@ def big_enough(r, x, y):
 					return False
 	return True
 
-def do_compute_path(r, cx, cy, tx, ty, n, stack, visited):
+def do_compute_path(r, cx, cy, tx, ty, n, stack, visited, escape_center, escape):
 	if n > 700:
 		print >> sys.stderr, "stack limit"
 		#stack.append((tx, ty))
-		return
+		return False
 	stack.append((cx, cy))
 	candidates = []
 	for y in [-1, 0, 1]:
 		for x in [-1, 0, 1]:
 			if x != 0 or y != 0:
-				if big_enough(r, cx + x, cy + y):
+				if big_enough(r, cx + x, cy + y, escape_center, escape):
 					candidates.append((dist(cx + x, cy + y, tx, ty), cx + x, cy + y))
 
 	for d, x, y in sorted(candidates):
 		if (x, y) not in visited:
 			if r[y][x] == 'T':
 				stack.append((tx, ty))
-				return
+				return True
 			visited.add((x, y))
-			do_compute_path(r, x, y, tx, ty, n + 1, stack, visited)
+			do_compute_path(r, x, y, tx, ty, n + 1, stack, visited, escape_center, escape)
 			if stack[-1] == (tx, ty):
-				return
+				return True
 	stack.pop()
+	return False
 
-def compute_path(r, x, y):
-	global table_start_offset # XXX global !!!
-	global target_pos
+def compute_path(r, table, x, y, rot, mirror, target_pos, escape_center, escape):
+
+	table_start_offset = get_table_start_offset(rotate_mirror_table(table, rot, mirror))
 
 	xpos = x + table_start_offset[0]
 	ypos = y + table_start_offset[1]
@@ -55,18 +58,25 @@ def compute_path(r, x, y):
 	ty = target_pos[1]
 	stck = []
 	visited = set([])
-	do_compute_path(r, xpos, ypos, tx, ty, 0, stck, visited)
-	return stck
+	r = do_compute_path(r, xpos, ypos, tx, ty, 0, stck, visited, escape_center, escape)
+	return stck, r
 
-def compute_paths(room, table, table_pos):
+def compute_paths(room, table, table_settings_list, target_pos, escape_center, escape):
+	""" Computes paths from each table.
+	Returns:
+		(list, int): room, number of existing paths
+	"""
 	paths = []
-	for i in xrange(len(table_pos)):
+	cnt = 0
+	for i, tp_i in enumerate(table_settings_list):
 		r = cp_room(room)
-		for j in xrange(len(table_pos)):
+		for j, tp_j in enumerate(table_settings_list):
 			if j != i:
 				# r is changed
-				put_table(r, table, table_pos[j][0], table_pos[j][1], True)
-		s = compute_path(r, table_pos[i][0], table_pos[i][1])
+				put_table(r, table, tp_j.pos[0], tp_j.pos[1], tp_j.rotation, tp_j.mirror, True)
+		s, res = compute_path(r, table, tp_i.pos[0], tp_i.pos[1], tp_i.rotation, tp_i.mirror, target_pos, escape_center, escape)
+		if res:
+			cnt += 1
 		paths.append(s)
 
 	# draw paths
@@ -76,4 +86,4 @@ def compute_paths(room, table, table_pos):
 			stack.pop()  # remove target from stack
 			for x, y in stack:
 				r[y][x] = 'O'
-	return r
+	return (r, cnt)

@@ -4,6 +4,7 @@
 # genetic algorithms so that they do not overlap.
 # Fitness function is based only on overlapping.
 
+# XXX compute_paths table_pos
 # XXX fitness function: include escape paths
 # XXX fitness function: increase average distance of tables
 # XXX fitness function: direction to door / other collegues
@@ -17,7 +18,7 @@ from helpers import put_tables_with_collision, table_settings
 from path import compute_paths
 import genetic
 
-n_tables = 8
+n_tables = 7
 table_pos = []
 room = []
 table = []
@@ -28,7 +29,7 @@ escape_center = []
 
 # -------------------------
 
-escape, escape_center     = load_escape()
+escape, escape_center     = load_escape(open("escape_tiny.txt"))
 room                      = load_room(open("raum.txt"))     # load room layout from file
 target_pos                = get_target_pos(room)
 table, table_start_offset = load_table()                    # load table layout from file
@@ -151,6 +152,8 @@ if True:
 		if population[best].fitness_value == 0:
 			tp = population[best].table_settings
 			r, cnt = put_tables_with_collision(room, table, tp)
+			r, paths = compute_paths(r, table, tp, target_pos, escape_center, escape)
+			print >> sys.stderr, paths
 			break
 
 		new_pop = []

@@ -6,19 +6,20 @@ def cp_room(r):
 		x.append(i[:])
 	return x
 
-def put_table(room, table, x, y, to_bin = False):
-    for (ypos, l) in enumerate(table):
-        for (xpos, c) in enumerate(l):
-            if c != ' ':
-                # check collisions with other tables
-                if not to_bin:
-                    if ypos + y >= len(room) or xpos + x >= len(room[ypos + y]) or room[ypos + y][xpos + x] != 'X':
-                        return False
-                if to_bin:
-                    room[ypos + y][xpos + x] = "!"
-                else:
-                    room[ypos + y][xpos + x] = c
-    return True
+def put_table(room, table, x, y, rot, mirror, to_bin = False):
+	t = rotate_mirror_table(table, rot, mirror)
+	for (ypos, l) in enumerate(t):
+		for (xpos, c) in enumerate(l):
+			if c != ' ':
+				# check collisions with other tables
+				if not to_bin:
+					if ypos + y >= len(room) or xpos + x >= len(room[ypos + y]) or room[ypos + y][xpos + x] != 'X':
+						return False
+				if to_bin:
+					room[ypos + y][xpos + x] = "!"
+				else:
+					room[ypos + y][xpos + x] = c
+	return True
 
 def put_tables(room, table, table_pos):
     r = cp_room(room)
@@ -57,6 +58,12 @@ class table_settings:
 		self.pos = pos
 		self.rotation = rotation
 		self.mirror = mirror
+
+def rotate_mirror_table(table, rot, mirror):
+	if mirror:
+		return _rotate_table(_mirror_table(table), rot)
+	else:
+		return _rotate_table(table, rot)
 
 def _rotate_table(table, n):
 	if n == 0:
