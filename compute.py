@@ -4,7 +4,6 @@
 # genetic algorithms so that they do not overlap.
 # Fitness function is based only on overlapping.
 
-# XXX rotate tables
 # XXX mirror tables
 # XXX fitness function: include escape paths
 # XXX fitness function: increase average distance of tables
