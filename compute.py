@@ -116,28 +116,37 @@ if True:
 		table_set = find_random_table_layout_with_collisions(n_tables, room, table)
 		population.append(individuum(table_set))
 
+	last_best = -1
+
 	while True:
 		assert(len(population) == n)
 
 		# compute fitness function for population
-		fsum = 0
+		fsum = 0.0
 		fsumr = 0.0
 		best = 0
 		for (idx, i) in enumerate(population):
 			# cnt = number of collisions
 			r, cnt = put_tables_with_collision(room, table, i.table_settings)
 
-			#for line in r:
-			#	print "".join(line)
-			#sys.exit(0)
+			fitness = float(cnt)
 
 			i.room_config = r
-			i.fitness_value = cnt
-			fsum += cnt
-			fsumr += 1.0 / (cnt + 1)
-			if cnt < population[best].fitness_value:
+			i.fitness_value = fitness
+			fsum += fitness
+			fsumr += 1.0 / (fitness + 1.0)
+			if fitness < population[best].fitness_value:
 				best = idx
+
 		print >> sys.stderr, "average fitness:", float(fsum) / n, "best:", population[best].fitness_value
+
+		if last_best != best:
+			last_best = best
+			print >> sys.stderr, "updated tmp.txt"
+			f = open("tmp.txt", "w")
+			for line in r:
+				print >> f, "".join(line)
+			f.close()
 
 		if population[best].fitness_value == 0:
 			tp = population[best].table_settings
