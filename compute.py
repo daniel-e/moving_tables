@@ -202,8 +202,10 @@ if True:
 	n_selection = 29
 	n_crossover = 60 / 2
 	n_mutation = 10
-	# create initial population
 
+	assert(n_elitism + n_selection + n_crossover * 2 + n_mutation == n)
+
+	# create initial population
 	for i in xrange(n):
 		# can also return overlapping tables
 		table_pos = find_random_table_layout(n_tables, room, table)
