@@ -5,6 +5,7 @@
 # Fitness function is based only on overlapping.
 
 # XXX rotate tables
+# XXX mirror tables
 # XXX fitness function: include escape paths
 # XXX fitness function: increase average distance of tables
 # XXX fitness function: direction to door / other collegues
@@ -45,24 +46,11 @@ class individuum:
 		self.room_config = None
 		self.table_pos = table_pos
 
-if False:
-	# initial population
-	if n_tables > 0:
-		table_pos = find_valid_random_table_layout(n_tables, room, table)
-		# put one population into the room
-		r = put_tables(room, table, table_pos)              # place tables in room
-	if not r:
-		# this should not happen
-		print >> sys.stderr, "invalid table configuration"
-		sys.exit(1)
-	r = compute_paths(r, table, table_pos)
-
-
 def tobin(i):
 	b = []
 	# 7 bit for x
 	# 6 bit for y
-	for x, y in i.table_pos:
+	for x, y, r in i.table_pos:
 		for i in [64, 32, 16, 8, 4, 2, 1]:
 			if x & i:
 				b.append(1)
@@ -73,13 +61,18 @@ def tobin(i):
 				b.append(1)
 			else:
 				b.append(0)
+		for i in [2, 1]:
+			if r & i:
+				b.append(1)
+			else:
+				b.append(0)
 	return b
 
 def split_bin(b):
-	for i in xrange(0, len(b), 7 + 6):
-		yield b[i:i+13]
+	for i in xrange(0, len(b), 7 + 6 + 2):
+		yield b[i:i+15]
 
-def fb(v):
+def bin2dec(v):
 	r = 0
 	f = 1
 	for i in reversed(v):
@@ -90,9 +83,10 @@ def fb(v):
 def frombin(b):
 	r = []
 	for i in split_bin(b):
-		x = fb(i[:7])
-		y = fb(i[7:])
-		r.append((x, y))
+		x = bin2dec(i[:7])
+		y = bin2dec(i[7:7+6])
+		rot = bin2dec(i[7+6:])
+		r.append((x, y, rot))
 	return individuum(r)
 
 def mutation(i):
@@ -127,8 +121,12 @@ if True:
 		best = 0
 		for (idx, i) in enumerate(population):
 			# cnt = number of collisions
-			#print >> sys.stderr, i.table_pos
 			r, cnt = put_tables_with_collision(room, table, i.table_pos)
+
+			#for line in r:
+			#	print "".join(line)
+			#sys.exit(0)
+
 			i.room_config = r
 			i.fitness_value = cnt
 			fsum += cnt
