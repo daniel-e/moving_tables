@@ -17,8 +17,9 @@ from helpers import find_valid_random_table_layout, find_random_table_layout_wit
 from helpers import put_tables_with_collision, table_settings
 from path import compute_paths
 import genetic
+from par import process_list
 
-n_tables = 7
+n_tables = 8
 table_pos = []
 room = []
 table = []
@@ -34,6 +35,7 @@ room                      = load_room(open("raum.txt"))     # load room layout f
 target_pos                = get_target_pos(room)
 table, table_start_offset = load_table()                    # load table layout from file
 
+assert (n_tables < 10)
 r = None
 
 class individuum:
@@ -100,6 +102,37 @@ def mutation(i):
 def crossover(i, j):
 	return [frombin(i) for i in genetic.crossover(tobin(i), tobin(j))]
 
+et, etc = load_escape(open("escape_tiny.txt"))
+em, emc = load_escape(open("escape_medium.txt"))
+en, enc = load_escape(open("escape_normal.txt"))
+
+def compute_fitness(jobs):
+	fsum = 0.0
+	fsumr = 0.0
+
+	reti = []
+	for i, room, table in jobs:
+		# cnt = number of collisions
+		r, cnt = put_tables_with_collision(room, table, i.table_settings)
+
+		fitness = float(cnt)
+
+		tp = i.table_settings
+		k, paths1 = compute_paths(r, table, tp, target_pos, etc, et)
+		k, paths2 = compute_paths(r, table, tp, target_pos, emc, em)
+		k, paths3 = compute_paths(r, table, tp, target_pos, enc, en)
+
+		# n_tables must be < 10
+		fitness += (n_tables - paths3) * 100 + (n_tables - paths2) * 10 + (n_tables - paths1)
+
+		i.room_config = r
+		i.fitness_value = fitness
+		fsum += fitness
+		fsumr += 1.0 / (fitness + 1.0)
+		reti.append(i)
+
+	return (fsum, fsumr, reti)
+
 
 if True:
 	population = []
@@ -125,35 +158,48 @@ if True:
 		# compute fitness function for population
 		fsum = 0.0
 		fsumr = 0.0
+		l = [(i, room, table) for i in population];
+		population = []
+		for i, j, pop in process_list(l, 12, 8, compute_fitness):
+			fsum += i
+			fsumr += j
+			population.extend(pop)
+		print >> sys.stderr, fsum, fsumr
+
+		#fsum = 0.0
+		#fsumr = 0.0
+		#for i in population:
+		#	fs, fr = compute_fitness([(i, room, table)])
+		#	fsum += fs
+		#	fsumr += fr
+		#print >> sys.stderr, fsum, fsumr
+		#sys.exit(1)
+
+		# find best
 		best = 0
 		for (idx, i) in enumerate(population):
-			# cnt = number of collisions
-			r, cnt = put_tables_with_collision(room, table, i.table_settings)
-
-			fitness = float(cnt)
-
-			i.room_config = r
-			i.fitness_value = fitness
-			fsum += fitness
-			fsumr += 1.0 / (fitness + 1.0)
-			if fitness < population[best].fitness_value:
+			if i.fitness_value < population[best].fitness_value:
 				best = idx
 
 		print >> sys.stderr, "average fitness:", float(fsum) / n, "best:", population[best].fitness_value
 
-		if last_best != best:
+		if population[best].fitness_value < population[last_best].fitness_value:
+			i = population[best]
+			x, cnt = put_tables_with_collision(room, table, i.table_settings)
+			tp = i.table_settings
+			k, paths = compute_paths(x, table, tp, target_pos, enc, en)
+
 			last_best = best
 			print >> sys.stderr, "updated tmp.txt"
 			f = open("tmp.txt", "w")
-			for line in r:
+			for line in k:
 				print >> f, "".join(line)
 			f.close()
 
 		if population[best].fitness_value == 0:
 			tp = population[best].table_settings
 			r, cnt = put_tables_with_collision(room, table, tp)
-			r, paths = compute_paths(r, table, tp, target_pos, escape_center, escape)
-			print >> sys.stderr, paths
+			r, paths = compute_paths(r, table, tp, target_pos, enc, en)
 			break
 
 		new_pop = []

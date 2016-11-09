@@ -15,10 +15,11 @@ def put_table(room, table, x, y, rot, mirror, to_bin = False):
 				if not to_bin:
 					if ypos + y >= len(room) or xpos + x >= len(room[ypos + y]) or room[ypos + y][xpos + x] != 'X':
 						return False
-				if to_bin:
-					room[ypos + y][xpos + x] = "!"
-				else:
-					room[ypos + y][xpos + x] = c
+				if ypos + y < len(room) and xpos + x < len(room[ypos + y]) and ypos + y > 0 and xpos + x > 0:
+					if to_bin:
+						room[ypos + y][xpos + x] = "!"
+					else:
+						room[ypos + y][xpos + x] = c
 	return True
 
 def put_tables(room, table, table_pos):

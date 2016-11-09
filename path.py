@@ -25,8 +25,8 @@ def big_enough(r, x, y, escape_center, escape):
 
 def do_compute_path(r, cx, cy, tx, ty, n, stack, visited, escape_center, escape):
 	if n > 700:
-		print >> sys.stderr, "stack limit"
-		#stack.append((tx, ty))
+	#	print >> sys.stderr, "stack limit"
+	#	#stack.append((tx, ty))
 		return False
 	stack.append((cx, cy))
 	candidates = []
