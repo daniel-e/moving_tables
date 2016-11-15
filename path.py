@@ -25,10 +25,12 @@ def big_enough(r, x, y, escape_center, escape):
 
 def do_compute_path(r, cx, cy, tx, ty, n, stack, visited, escape_center, escape):
 	if n > 700:
-	#	print >> sys.stderr, "stack limit"
-	#	#stack.append((tx, ty))
 		return False
+
 	stack.append((cx, cy))
+	if r[cy][cx] == 'T':
+		return True
+
 	candidates = []
 	for y in [-1, 0, 1]:
 		for x in [-1, 0, 1]:
@@ -38,12 +40,8 @@ def do_compute_path(r, cx, cy, tx, ty, n, stack, visited, escape_center, escape)
 
 	for d, x, y in sorted(candidates):
 		if (x, y) not in visited:
-			if r[y][x] == 'T':
-				stack.append((tx, ty))
-				return True
 			visited.add((x, y))
-			do_compute_path(r, x, y, tx, ty, n + 1, stack, visited, escape_center, escape)
-			if stack[-1] == (tx, ty):
+			if do_compute_path(r, x, y, tx, ty, n + 1, stack, visited, escape_center, escape):
 				return True
 	stack.pop()
 	return False

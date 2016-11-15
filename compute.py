@@ -19,7 +19,8 @@ from path import compute_paths
 import genetic
 from par import process_list
 
-n_tables = 8
+n_tables = 4
+threads = 4
 table_pos = []
 room = []
 table = []
@@ -160,20 +161,10 @@ if True:
 		fsumr = 0.0
 		l = [(i, room, table) for i in population];
 		population = []
-		for i, j, pop in process_list(l, 12, 8, compute_fitness):
+		for i, j, pop in process_list(l, int(n/threads), threads, compute_fitness):
 			fsum += i
 			fsumr += j
 			population.extend(pop)
-		print >> sys.stderr, fsum, fsumr
-
-		#fsum = 0.0
-		#fsumr = 0.0
-		#for i in population:
-		#	fs, fr = compute_fitness([(i, room, table)])
-		#	fsum += fs
-		#	fsumr += fr
-		#print >> sys.stderr, fsum, fsumr
-		#sys.exit(1)
 
 		# find best
 		best = 0
