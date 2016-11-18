@@ -4,14 +4,12 @@
 # genetic algorithms so that they do not overlap.
 # Fitness function is based only on overlapping.
 
-# XXX compute_paths table_pos
-# XXX fitness function: include escape paths
 # XXX fitness function: increase average distance of tables
 # XXX fitness function: direction to door / other collegues
 
 
-import sys, random
-from io import load_room, load_table, load_escape
+import sys, random, os
+from table_io import load_room, load_table, load_escape
 from helpers import put_table, put_tables, cp_room, get_target_pos, dist
 from helpers import find_valid_random_table_layout, find_random_table_layout_with_collisions
 from helpers import put_tables_with_collision, table_settings
@@ -19,7 +17,11 @@ from path import compute_paths
 import genetic
 from par import process_list
 
-n_tables = 4
+
+live_learning_curve = "learning_curve.txt"
+learning_curve = []
+
+n_tables = 7
 threads = 4
 table_pos = []
 room = []
@@ -30,6 +32,11 @@ escape = []
 escape_center = []
 
 # -------------------------
+
+# if we do not delete the file but truncate it we will be able to see the
+# new results with tail even if we restart the computation
+f = open(live_learning_curve, "w")
+f.close()
 
 escape, escape_center     = load_escape(open("escape_tiny.txt"))
 room                      = load_room(open("raum.txt"))     # load room layout from file
@@ -173,6 +180,11 @@ if True:
 				best = idx
 
 		print >> sys.stderr, "average fitness:", float(fsum) / n, "best:", population[best].fitness_value
+
+
+		f = open(live_learning_curve, "a")
+		print >> f, float(fsum) / n
+		f.close()
 
 		if population[best].fitness_value < population[last_best].fitness_value:
 			i = population[best]

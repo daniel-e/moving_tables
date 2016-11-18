@@ -1,5 +1,5 @@
 import sys
-from io import get_table_start_offset
+from table_io import get_table_start_offset
 from helpers import rotate_mirror_table, cp_room, put_table, dist
 
 def allowed(r, x, y):
@@ -27,9 +27,14 @@ def do_compute_path(r, cx, cy, tx, ty, n, stack, visited, escape_center, escape)
 	if n > 700:
 		return False
 
+#	print "A"
 	stack.append((cx, cy))
-	if r[cy][cx] == 'T':
-		return True
+#	print "AA", len(r), cy
+#	print "AA", len(r[cy]), cx
+#	if cy < r[cy][cx] == 'T':
+#		print "AAA"
+#		return True
+#	print "B"
 
 	candidates = []
 	for y in [-1, 0, 1]:
@@ -37,13 +42,19 @@ def do_compute_path(r, cx, cy, tx, ty, n, stack, visited, escape_center, escape)
 			if x != 0 or y != 0:
 				if big_enough(r, cx + x, cy + y, escape_center, escape):
 					candidates.append((dist(cx + x, cy + y, tx, ty), cx + x, cy + y))
+#	print "C"
 
 	for d, x, y in sorted(candidates):
 		if (x, y) not in visited:
 			visited.add((x, y))
+			if r[y][x] == 'T':
+				stack.append((x, y))
+				return True
 			if do_compute_path(r, x, y, tx, ty, n + 1, stack, visited, escape_center, escape):
 				return True
+#	print "D"
 	stack.pop()
+#	print "E"
 	return False
 
 def compute_path(r, table, x, y, rot, mirror, target_pos, escape_center, escape):
@@ -76,7 +87,6 @@ def compute_paths(room, table, table_settings_list, target_pos, escape_center, e
 		if res:
 			cnt += 1
 		paths.append(s)
-
 	# draw paths
 	r = cp_room(room)
 	for stack in paths:
