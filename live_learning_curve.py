@@ -12,6 +12,7 @@ def update_plot():
     vals = [float(i) for i in f]
     f.close()
     plt.plot(vals, 'r-s')
+    plt.grid(True)
 
 while True:
     update_plot()

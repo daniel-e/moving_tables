@@ -4,7 +4,7 @@ import pygtk
 pygtk.require('2.0')
 import gtk, sys
 
-from io import load_room
+from table_io import load_room
 
 room = load_room(sys.stdin)
 
