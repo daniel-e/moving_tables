@@ -21,8 +21,10 @@ from par import process_list
 live_learning_curve = "learning_curve.txt"
 learning_curve = []
 
-n_tables = 7
+n_tables = 6
 threads = 4
+fitness_include_paths = True
+
 table_pos = []
 room = []
 table = []
@@ -125,13 +127,13 @@ def compute_fitness(jobs):
 
 		fitness = float(cnt)
 
-		tp = i.table_settings
-		k, paths1 = compute_paths(r, table, tp, target_pos, etc, et)
-		k, paths2 = compute_paths(r, table, tp, target_pos, emc, em)
-		k, paths3 = compute_paths(r, table, tp, target_pos, enc, en)
-
-		# n_tables must be < 10
-		fitness += (n_tables - paths3) * 100 + (n_tables - paths2) * 10 + (n_tables - paths1)
+		if fitness_include_paths:
+			tp = i.table_settings
+			k, paths1 = compute_paths(r, table, tp, target_pos, etc, et)
+			k, paths2 = compute_paths(r, table, tp, target_pos, emc, em)
+			k, paths3 = compute_paths(r, table, tp, target_pos, enc, en)
+			# n_tables must be < 10
+			fitness += (n_tables - paths3) * 100 + (n_tables - paths2) * 10 + (n_tables - paths1)
 
 		i.room_config = r
 		i.fitness_value = fitness
