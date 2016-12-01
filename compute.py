@@ -16,6 +16,7 @@ from helpers import put_tables_with_collision, table_settings
 from path import compute_paths
 import genetic
 from par import process_list
+from privacy import calculate_privacy_panelty
 
 
 live_learning_curve = "learning_curve.txt"
@@ -134,6 +135,9 @@ def compute_fitness(jobs):
 			k, paths3 = compute_paths(r, table, tp, target_pos, enc, en)
 			# n_tables must be < 10
 			fitness += (n_tables - paths3) * 100 + (n_tables - paths2) * 10 + (n_tables - paths1)
+
+		penalty = sum([calculate_privacy_panelty(ts.pos, ts.rotation, target_pos) for ts in i.table_settings])
+		fitness += penalty
 
 		i.room_config = r
 		i.fitness_value = fitness
