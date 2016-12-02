@@ -185,7 +185,7 @@ if True:
 
 
 		f = open(live_learning_curve, "a")
-		print >> f, float(fsum) / n
+		print >> f, float(fsum) / n, population[best].fitness_value
 		f.close()
 
 		if population[best].fitness_value < population[last_best].fitness_value:
